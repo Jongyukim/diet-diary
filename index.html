@@ -324,6 +324,40 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 /* 반응형 */
 @media(min-width:900px){.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.settings-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:899px){.settings-grid{grid-template-columns:1fr;}.body-grid{grid-template-columns:repeat(2,1fr);}}
+/* 체중 빠른입력 바 */
+.weight-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hdr-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:57px;z-index:49;}
+.weight-bar-lbl{font-size:10px;color:var(--t3);font-weight:600;white-space:nowrap;}
+.weight-bar-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--accent);min-width:48px;}
+.weight-quick-inp{width:70px;padding:5px 8px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;outline:none;text-align:center;transition:border-color var(--tr);}
+.weight-quick-inp:focus{border-color:var(--accent);}
+.weight-save-btn{padding:5px 12px;border-radius:20px;border:none;background:var(--accentG);color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--tr);white-space:nowrap;}
+.weight-save-btn:active{transform:scale(.95);}
+.weight-trend{font-size:10px;font-family:'JetBrains Mono',monospace;margin-left:auto;white-space:nowrap;}
+.weight-trend.up{color:var(--red);}
+.weight-trend.down{color:var(--accent);}
+.weight-trend.same{color:var(--t3);}
+
+/* 히트맵 */
+.heatmap-wrap{overflow-x:auto;padding-bottom:4px;}
+.heatmap{display:flex;gap:3px;}
+.heatmap-week{display:flex;flex-direction:column;gap:3px;}
+.heatmap-cell{width:12px;height:12px;border-radius:2px;background:var(--s3);transition:background var(--tr);cursor:default;position:relative;}
+.heatmap-cell.lv1{background:rgba(110,231,183,.25);}
+.heatmap-cell.lv2{background:rgba(110,231,183,.5);}
+.heatmap-cell.lv3{background:rgba(110,231,183,.75);}
+.heatmap-cell.lv4{background:#6ee7b7;}
+.heatmap-cell.today{outline:2px solid var(--accent);outline-offset:1px;}
+[data-theme="glass"] .heatmap-cell.lv1{background:rgba(167,139,250,.25);}
+[data-theme="glass"] .heatmap-cell.lv2{background:rgba(167,139,250,.5);}
+[data-theme="glass"] .heatmap-cell.lv3{background:rgba(167,139,250,.75);}
+[data-theme="glass"] .heatmap-cell.lv4{background:#a78bfa;}
+[data-theme="glass"] .heatmap-cell.today{outline-color:var(--accent);}
+.heatmap-months{display:flex;gap:3px;margin-bottom:3px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.heatmap-days{display:flex;flex-direction:column;gap:3px;margin-right:4px;}
+.heatmap-day-lbl{height:12px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;line-height:12px;}
+.heatmap-stats{display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--t3);}
+.heatmap-stat strong{color:var(--t1);font-family:'JetBrains Mono',monospace;}
+
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px;}
 </style>
 </head>
@@ -351,6 +385,23 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
       <span id="streakN">0</span>
     </div>
   </div>
+</div>
+
+<!-- 체중 빠른입력 바 -->
+<div class="weight-bar">
+  <div class="weight-bar-lbl">오늘 체중</div>
+  <div class="weight-bar-val" id="wbVal">--</div>
+  <span style="font-size:9px;color:var(--t3)">kg</span>
+  <input class="weight-quick-inp" type="number" id="wbInp" placeholder="00.0" step="0.1" min="30" max="200" onkeydown="if(event.key==='Enter')saveWeightQuick()">
+  <button class="weight-save-btn" onclick="saveWeightQuick()">저장</button>
+  <div class="weight-trend" id="wbTrend"></div>
+</div>
+
+<!-- 알림 배너 -->
+<div class="notif-banner" id="notifBanner" style="display:none;align-items:center;gap:8px;padding:9px 12px;background:var(--accentD);border:1px solid rgba(110,231,183,.18);border-radius:var(--radius-sm);margin:8px 14px;font-size:11px;">
+  <span style="flex:1;color:var(--t1)">🔔 매일 저녁 8시에 기록 리마인더를 받을까요?</span>
+  <button style="padding:4px 10px;border-radius:6px;border:none;background:var(--accent);color:#000;font-size:10px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;" onclick="requestNotification()">허용</button>
+  <button style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;" onclick="dismissNotifBanner()">✕</button>
 </div>
 
 <!-- 일기 -->
@@ -452,6 +503,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 <div class="page" id="pCharts">
   <div class="period-tabs" id="periodTabs"><button class="period-tab on" onclick="setPer(7,this)">7일</button><button class="period-tab" onclick="setPer(14,this)">14일</button><button class="period-tab" onclick="setPer(30,this)">30일</button></div>
   <div style="font-size:10px;color:var(--t3);margin-bottom:10px">* 기록 없는 날 제외 후 집계</div>
+  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-days" id="hmDays"></div><div class="heatmap-months" id="hmMonths"></div><div class="heatmap-wrap"><div class="heatmap" id="heatmap"></div></div><div class="heatmap-stats" id="hmStats"></div></div>
   <div class="two-col">
     <div><div class="card chart-card"><div class="card-title">칼로리 추이</div><canvas id="cCal"></canvas></div><div class="card chart-card"><div class="card-title">매크로 추이</div><canvas id="cMac"></canvas></div></div>
     <div><div class="card chart-card"><div class="card-title">체중 변화</div><canvas id="cWt"></canvas></div><div class="card chart-card"><div class="card-title">누적 칼로리 경감</div><canvas id="cDef"></canvas></div></div>
@@ -577,19 +629,21 @@ function setIntensity(lvl,btn){selIntensity=lvl;document.querySelectorAll('.int-
 function updateCardioResult(){
   const min=parseFloat(document.getElementById('cardioMin').value)||0,dist=parseFloat(document.getElementById('cardioDist').value)||0,res=document.getElementById('cardioResult');
   if(!selCardio){res.innerHTML=`<span style="color:var(--t3);font-size:10px">운동을 선택하세요</span>`;return;}
-  const allC=[...cardioPresets,...getCE().filter(e=>e.type==='cardio').map(e=>({id:'ce_'+e.id,cpm:{low:e.cpm,mid:Math.round(e.cpm*1.3),hi:Math.round(e.cpm*1.6)}}))];
-  const p=allC.find(x=>x.id===selCardio);const cpm=p?p.cpm[selIntensity]:0;const cal=Math.round(cpm*(min||1));
+  const bw=latestW()||75;
+  const cal=MET_TABLE[selCardio]?calcCardioCalMET(selCardio,min||30,selIntensity,bw):(()=>{const allC=[...cardioPresets,...getCE().filter(e=>e.type==='cardio').map(e=>({id:'ce_'+e.id,cpm:{low:e.cpm,mid:Math.round(e.cpm*1.3),hi:Math.round(e.cpm*1.6)}}))];const p=allC.find(x=>x.id===selCardio);return Math.round((p?p.cpm[selIntensity]:8)*(min||30));})();
   let pace='-';if(min>0&&dist>0){const pm=Math.floor(min/dist);const ps=Math.round((min/dist%1)*60);pace=`${pm}'${String(ps).padStart(2,'0')}""`;}
   document.getElementById('cardioPace').textContent=pace;
-  res.innerHTML=`<span style="color:var(--t2);font-size:10px">${min?min+'분':''} ${dist?'· '+dist+'km':''}</span><span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px">-${cal} kcal</span>`;
+  const metLabel=MET_TABLE[selCardio]?'(MET 기반)':'';
+  res.innerHTML=`<span style="color:var(--t2);font-size:10px">${min?min+'분':''} ${dist?'· '+dist+'km':''} ${metLabel}</span><span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px">-${cal} kcal</span>`;
 }
 function selMuscleGrp(g,btn){selMuscle=g;selStrEx=null;document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderStrList();}
 function getPrevRec(){const a=load();if(!a.days)return{};const r={};for(const k of Object.keys(a.days).sort().reverse()){if(k===localDK())continue;(a.days[k].exercises||[]).forEach(e=>{if(e.type==='strength'&&!r[e.name])r[e.name]={weight:e.weight,reps:e.reps,sets:e.sets};});}return r;}
 function renderStrList(){const c=document.getElementById('strengthList');const exs=[...(muscleGroups[selMuscle]||[]),...getCE().filter(e=>e.type==='strength').map(e=>e.name)];const prev=getPrevRec();c.innerHTML=exs.map(name=>{const p=prev[name];return`<button class="str-btn${selStrEx===name?' sel':''}" onclick="selStrEx2('${name}',this)"><span>${name}</span><span class="str-prev">${p?`${p.weight}kg×${p.reps}×${p.sets}`:'첫 기록'}</span></button>`;}).join('');}
 function selStrEx2(name,btn){selStrEx=name;document.querySelectorAll('.str-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');const p=getPrevRec();if(p[name]){document.getElementById('strSets').value=p[name].sets||3;document.getElementById('strReps').value=p[name].reps||10;document.getElementById('strWeight').value=p[name].weight||0;}updateStrResult();}
-function updateStrResult(){const sets=parseInt(document.getElementById('strSets').value)||0,reps=parseInt(document.getElementById('strReps').value)||0,weight=parseFloat(document.getElementById('strWeight').value)||0,res=document.getElementById('strengthResult');if(!selStrEx){res.innerHTML=`<span style="color:var(--t3);font-size:10px">운동을 선택하세요</span>`;return;}const vol=sets*reps*weight;const cal=Math.round(sets*reps*0.5);res.innerHTML=`<span style="color:var(--t2);font-size:10px">${sets}×${reps}×${weight}kg</span><div style="display:flex;gap:8px"><span style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-weight:700">볼륨 ${vol}kg</span><span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700">-${cal}kcal</span></div>`;}
-function addCardio(){if(!selCardio){showToast('운동을 선택하세요');return;}const min=parseFloat(document.getElementById('cardioMin').value)||0;if(!min){showToast('시간을 입력하세요');return;}const dist=parseFloat(document.getElementById('cardioDist').value)||0;const allC=[...cardioPresets,...getCE().filter(e=>e.type==='cardio').map(e=>({id:'ce_'+e.id,name:e.name,cpm:{low:e.cpm,mid:Math.round(e.cpm*1.3),hi:Math.round(e.cpm*1.6)}}))];const p=allC.find(x=>x.id===selCardio);const cpm=p?p.cpm[selIntensity]:0;const cal=Math.round(cpm*min);const k=localDK(),d=gd(k);d.exercises.push({type:'cardio',name:p?p.name:'커스텀',minutes:min,distance:dist,intensity:selIntensity,cal});sd(k,d);render();document.getElementById('cardioMin').value='';document.getElementById('cardioDist').value='';showToast(`${p?p.name:'운동'} 추가 ✅`);}
-function addStrength(){if(!selStrEx){showToast('운동을 선택하세요');return;}const sets=parseInt(document.getElementById('strSets').value)||0,reps=parseInt(document.getElementById('strReps').value)||0,weight=parseFloat(document.getElementById('strWeight').value)||0;if(!sets||!reps){showToast('세트/횟수를 입력하세요');return;}const vol=sets*reps*weight;const cal=Math.round(sets*reps*0.5);const k=localDK(),d=gd(k);d.exercises.push({type:'strength',name:selStrEx,sets,reps,weight,volume:vol,cal});sd(k,d);render();showToast(`${selStrEx} 추가 ✅`);}
+function updateStrResult(){const sets=parseInt(document.getElementById('strSets').value)||0,reps=parseInt(document.getElementById('strReps').value)||0,weight=parseFloat(document.getElementById('strWeight').value)||0,res=document.getElementById('strengthResult');if(!selStrEx){res.innerHTML=`<span style="color:var(--t3);font-size:10px">운동을 선택하세요</span>`;return;}const vol=sets*reps*weight;const bw=latestW()||75;const cal=calcStrengthCalMET(sets,reps,weight,bw);res.innerHTML=`<span style="color:var(--t2);font-size:10px">${sets}×${reps}×${weight}kg (MET)</span><div style="display:flex;gap:8px"><span style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-weight:700">볼륨 ${vol}kg</span><span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-weight:700">-${cal}kcal</span></div>`;}
+function addCardio(){if(!selCardio){showToast('운동을 선택하세요');return;}const min=parseFloat(document.getElementById('cardioMin').value)||0;if(!min){showToast('시간을 입력하세요');return;}const dist=parseFloat(document.getElementById('cardioDist').value)||0;const allC=[...cardioPresets,...getCE().filter(e=>e.type==='cardio').map(e=>({id:'ce_'+e.id,name:e.name,cpm:{low:e.cpm,mid:Math.round(e.cpm*1.3),hi:Math.round(e.cpm*1.6)}}))];const p=allC.find(x=>x.id===selCardio);const s=gs();const bw=latestW()||75;// MET 기반 계산 (프리셋은 MET, 커스텀은 cpm 폴백)
+const cal=MET_TABLE[selCardio]?calcCardioCalMET(selCardio,min,selIntensity,bw):Math.round((p?p.cpm[selIntensity]:8)*min);const k=localDK(),d=gd(k);d.exercises.push({type:'cardio',name:p?p.name:'커스텀',minutes:min,distance:dist,intensity:selIntensity,cal});sd(k,d);render();document.getElementById('cardioMin').value='';document.getElementById('cardioDist').value='';showToast(`${p?p.name:'운동'} 추가 ✅`);}
+function addStrength(){if(!selStrEx){showToast('운동을 선택하세요');return;}const sets=parseInt(document.getElementById('strSets').value)||0,reps=parseInt(document.getElementById('strReps').value)||0,weight=parseFloat(document.getElementById('strWeight').value)||0;if(!sets||!reps){showToast('세트/횟수를 입력하세요');return;}const vol=sets*reps*weight;const bw=latestW()||75;const cal=calcStrengthCalMET(sets,reps,weight,bw);const k=localDK(),d=gd(k);d.exercises.push({type:'strength',name:selStrEx,sets,reps,weight,volume:vol,cal});sd(k,d);render();showToast(`${selStrEx} 추가 ✅`);}
 function switchExTab(tab,btn){document.querySelectorAll('.ex-tab').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.ex-section').forEach(s=>s.classList.remove('on'));btn.classList.add('on');document.getElementById('ex'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('on');}
 function remEx(i){const k=localDK(),d=gd(k);d.exercises.splice(i,1);sd(k,d);render();}
 function addCustomEx(){const n=document.getElementById('ceN').value.trim(),type=document.getElementById('ceType').value,cpm=parseFloat(document.getElementById('ceCpm').value);if(!n||!cpm)return;const ce=getCE();ce.push({id:'ce'+Date.now(),name:n,type,cpm});saveCE(ce);document.getElementById('ceN').value='';document.getElementById('ceCpm').value='';initExUI();renderCEL();showToast(`${n} 추가 ✅`);}
@@ -750,6 +804,7 @@ function render(){
   document.getElementById('sCal').value=s.targetCal;document.getElementById('sCarb').value=s.targetCarb;document.getElementById('sFat').value=s.targetFat;document.getElementById('sPro').value=s.targetPro;
   document.getElementById('streakN').textContent=streak();
   renderCFL();renderCEL();updateDriveUI();initExUI();
+  renderWeightBar();
 }
 
 function moveDate(n){cDate.setDate(cDate.getDate()+n);render();}
@@ -759,7 +814,7 @@ function remMI(sl,i){const k=localDK(),d=gd(k);d.meals[sl].splice(i,1);sd(k,d);r
 function saveComment(){const k=localDK(),d=gd(k);d.comment=document.getElementById('commentTA').value;sd(k,d);}
 function saveBS(){const s=gs();s.height=parseFloat(document.getElementById('iH').value)||s.height;s.goalWeight=parseFloat(document.getElementById('iG').value)||s.goalWeight;s.age=parseInt(document.getElementById('iAge').value)||s.age;ss(s);const k=localDK(),d=gd(k),w=parseFloat(document.getElementById('iW').value);if(w)d.weight=w;sd(k,d);render();}
 function saveTgt(){const s=gs();s.targetCal=parseInt(document.getElementById('sCal').value)||1500;s.targetCarb=parseInt(document.getElementById('sCarb').value)||150;s.targetFat=parseInt(document.getElementById('sFat').value)||50;s.targetPro=parseInt(document.getElementById('sPro').value)||140;ss(s);render();}
-function go(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));document.getElementById(p).classList.add('on');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');if(p==='pCharts')renderCharts();}
+function go(p,btn){document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));document.getElementById(p).classList.add('on');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');if(p==='pCharts'){renderCharts();renderHeatmap();}}
 
 // 테마 순환 (dark → light → glass → dark)
 function cycleTheme(){
@@ -805,6 +860,190 @@ function renderCharts(){
 function exportJSON(){const b=new Blob([JSON.stringify(load(),null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`diet-diary-${localDK(new Date())}.json`;a.click();URL.revokeObjectURL(u);}
 function importJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{save(JSON.parse(ev.target.result));render();showToast('불러오기 완료 ✅');}catch{showToast('오류 ❌');}};r.readAsText(f);e.target.value='';}
 
+// ===== 체중 빠른입력 =====
+function renderWeightBar(){
+  const d=gd(localDK()),s=gs();
+  const w=d.weight||latestW();
+  const valEl=document.getElementById('wbVal');
+  const trendEl=document.getElementById('wbTrend');
+  if(valEl)valEl.textContent=w?w.toFixed(1):'--';
+  // 전날 체중 비교
+  if(trendEl&&w){
+    const prev=new Date(cDate);prev.setDate(prev.getDate()-1);
+    const prevD=load().days?.[localDK(prev)];
+    const prevW=prevD?.weight;
+    if(prevW){
+      const diff=(w-prevW).toFixed(1);
+      const cls=diff>0?'up':diff<0?'down':'same';
+      trendEl.className='weight-trend '+cls;
+      trendEl.textContent=diff>0?`+${diff}kg`:diff<0?`${diff}kg`:'±0';
+    }else{if(trendEl)trendEl.textContent='';}
+  }else{if(trendEl)trendEl.textContent='';}
+}
+function saveWeightQuick(){
+  const inp=document.getElementById('wbInp');
+  const w=parseFloat(inp.value);
+  if(!w||w<30||w>300){showToast('체중을 올바르게 입력하세요');return;}
+  const s=gs();
+  const k=localDK(),d=gd(k);
+  d.weight=w;sd(k,d);
+  inp.value='';
+  renderWeightBar();
+  render();
+  showToast(`${w}kg 기록 ✅`);
+}
+
+// ===== MET 기반 운동 칼로리 계산 =====
+// MET값: 체중(kg) × MET × 시간(h) = kcal
+const MET_TABLE={
+  run:{low:7.0,mid:9.8,hi:12.3},   // 느린조깅/보통/빠른달리기
+  walk:{low:2.8,mid:3.5,hi:4.5},   // 천천히/보통/빠르게
+  cycle:{low:4.0,mid:6.8,hi:10.0}, // 가벼운/보통/격렬
+  swim:{low:5.8,mid:7.0,hi:9.8},   // 천천히/보통/격렬
+  jump:{low:8.8,mid:10.0,hi:12.3}, // 천천히/보통/빠르게
+  tread:{low:6.0,mid:8.0,hi:11.0}, // 저속/중속/고속
+};
+// 무산소 MET (저항운동)
+const STRENGTH_MET=5.0; // 일반 웨이트트레이닝 MET
+
+function calcCardioCalMET(presetId,minutes,intensity,bodyWeightKg){
+  const met=MET_TABLE[presetId]?.[intensity]||8.0;
+  return Math.round(met*(bodyWeightKg||75)*(minutes/60));
+}
+function calcStrengthCalMET(sets,reps,weightKg,bodyWeightKg){
+  // 실제 운동 시간 추정: 세트당 약 45초 운동 + 휴식 제외
+  const activeMinutes=sets*(reps*3/60); // 동작 하나 약 3초
+  return Math.round(STRENGTH_MET*(bodyWeightKg||75)*(activeMinutes/60));
+}
+
+// ===== 히트맵 =====
+function renderHeatmap(){
+  const a=load();
+  const today=new Date();
+  const todayK=localDK(today);
+  const WEEKS=16;
+  const totalDays=WEEKS*7;
+
+  // 시작일 (오늘 기준 totalDays일 전, 일요일로 정렬)
+  const start=new Date(today);
+  start.setDate(start.getDate()-totalDays+1);
+  // 일요일로 맞추기
+  const dow=start.getDay();
+  start.setDate(start.getDate()-dow);
+
+  const heatmap=document.getElementById('heatmap');
+  const hmMonths=document.getElementById('hmMonths');
+  const hmStats=document.getElementById('hmStats');
+  if(!heatmap)return;
+
+  let html='';
+  let recordedDays=0,totalCal=0,currentStreak=0,maxStreak=0,tmpStreak=0;
+  const monthPositions=[];
+  let prevMonth=-1;
+  let weekIdx=0;
+
+  for(let w=0;w<WEEKS;w++){
+    html+=`<div class="heatmap-week">`;
+    for(let d=0;d<7;d++){
+      const cur=new Date(start);
+      cur.setDate(start.getDate()+w*7+d);
+      if(cur>today){html+=`<div class="heatmap-cell lv0"></div>`;continue;}
+      const k=localDK(cur);
+      const dy=a.days?.[k];
+      const hasRec=dy&&slots.some(sl=>(dy.meals[sl]||[]).length>0);
+      let tc=0;
+      if(hasRec){slots.forEach(sl=>(dy.meals[sl]||[]).forEach(i=>tc+=i.cal||0));recordedDays++;totalCal+=tc;}
+      // 레벨 계산
+      let lv=0;
+      if(hasRec){
+        if(tc>=1500)lv=4;
+        else if(tc>=1000)lv=3;
+        else if(tc>=500)lv=2;
+        else lv=1;
+      }
+      const isToday=k===todayK;
+      const title=`${k}: ${hasRec?tc+'kcal':'기록없음'}`;
+      html+=`<div class="heatmap-cell lv${lv}${isToday?' today':''}" title="${title}"></div>`;
+      // 월 표시
+      const m=cur.getMonth();
+      if(m!==prevMonth){monthPositions.push({w,month:cur.toLocaleDateString('ko',{month:'short'})});prevMonth=m;}
+    }
+    html+=`</div>`;
+  }
+  heatmap.innerHTML=html;
+
+  // 월 레이블
+  if(hmMonths){
+    let mHtml='';
+    let lastW=-1;
+    monthPositions.forEach(({w,month})=>{
+      const gap=w-lastW-1;
+      if(gap>0)mHtml+=`<span style="width:${gap*(13+3)}px;display:inline-block"></span>`;
+      mHtml+=`<span style="width:${13+3}px;display:inline-block">${month}</span>`;
+      lastW=w;
+    });
+    hmMonths.innerHTML=mHtml;
+  }
+
+  // 스트릭 계산
+  for(let i=0;i<=totalDays;i++){
+    const cur=new Date(today);cur.setDate(today.getDate()-i);
+    const k=localDK(cur);const dy=a.days?.[k];
+    if(dy&&slots.some(sl=>(dy.meals[sl]||[]).length>0)){tmpStreak++;if(tmpStreak>maxStreak)maxStreak=tmpStreak;if(i===0||currentStreak===tmpStreak-1)currentStreak=tmpStreak;}
+    else{if(i===0)currentStreak=0;tmpStreak=0;}
+  }
+
+  if(hmStats){
+    const avg=recordedDays>0?Math.round(totalCal/recordedDays):0;
+    hmStats.innerHTML=`
+      <div class="heatmap-stat"><div class="hm-stat-val">${recordedDays}</div><div>기록한 날</div></div>
+      <div class="heatmap-stat"><div class="hm-stat-val">${currentStreak}</div><div>현재 스트릭</div></div>
+      <div class="heatmap-stat"><div class="hm-stat-val">${maxStreak}</div><div>최장 스트릭</div></div>
+      <div class="heatmap-stat"><div class="hm-stat-val">${avg}</div><div>평균 칼로리</div></div>
+    `;
+  }
+}
+
+// ===== PWA 알림 =====
+async function requestNotification(){
+  if(!('Notification' in window)){showToast('이 브라우저는 알림을 지원하지 않아요');return;}
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    localStorage.setItem('dd_notif','1');
+    document.getElementById('notifBanner').classList.remove('show');
+    showToast('알림 허용됨 ✅ 매일 저녁 8시에 리마인더를 보내드릴게요');
+    scheduleNotification();
+  }else{showToast('알림이 거부됐어요');}
+}
+function dismissNotifBanner(){localStorage.setItem('dd_notif_dismissed','1');document.getElementById('notifBanner').classList.remove('show');}
+function scheduleNotification(){
+  if(Notification.permission!=='granted')return;
+  const now=new Date();
+  const target=new Date();target.setHours(20,0,0,0);
+  if(target<=now)target.setDate(target.getDate()+1);
+  const ms=target-now;
+  setTimeout(()=>{
+    const d=gd(localDK());
+    const hasRec=slots.some(sl=>(d.meals[sl]||[]).length>0);
+    if(!hasRec){new Notification('DietDiary 🔥',{body:'오늘 식단 기록하셨나요? 잠깐이면 돼요!',icon:'/favicon.ico'});}
+    scheduleNotification();
+  },ms);
+}
+
+// ===== Service Worker 등록 =====
+function registerSW(){
+  if(!('serviceWorker' in navigator))return;
+  const swCode=`
+const CACHE='diet-diary-v1';
+const ASSETS=['/'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.status===200){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}return res;}).catch(()=>caches.match('/')))));
+  `;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
 window.addEventListener('load',async()=>{
   // 저장된 테마 복원
   const savedTheme=localStorage.getItem('dd_theme')||'dark';
@@ -813,7 +1052,15 @@ window.addEventListener('load',async()=>{
   // Drive
   const saved=localStorage.getItem('dd_token');
   if(saved){accessToken=saved;updateDriveUI();await syncFromDrive();}
+  // Service Worker
+  registerSW();
+  // 알림 배너 표시
+  if(!localStorage.getItem('dd_notif')&&!localStorage.getItem('dd_notif_dismissed')&&'Notification' in window&&Notification.permission==='default'){
+    setTimeout(()=>document.getElementById('notifBanner')?.classList.add('show'),2000);
+  }
+  if(localStorage.getItem('dd_notif')==='1')scheduleNotification();
   render();
+  renderWeightBar();
 });
 </script>
 </body>
