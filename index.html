@@ -45,31 +45,6 @@
   --input-bg:#f2f2f6;
 }
 
-/* ===== GLASS ===== */
-[data-theme="glass"]{
-  --bg:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
-  --s0:rgba(255,255,255,.04);--s1:rgba(255,255,255,.07);
-  --s2:rgba(255,255,255,.05);--s3:rgba(255,255,255,.08);--s4:rgba(255,255,255,.12);
-  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
-  --t1:#f0f0ff;--t2:rgba(200,200,255,.7);--t3:rgba(160,160,220,.5);
-  --accent:#a78bfa;--accent2:#8b5cf6;--accentD:rgba(167,139,250,.15);
-  --accentG:linear-gradient(135deg,#8b5cf6,#a78bfa);
-  --red:#f87171;--redD:rgba(248,113,113,.15);
-  --blue:#60a5fa;--blueD:rgba(96,165,250,.15);
-  --orange:#fb923c;--orangeD:rgba(251,146,60,.15);
-  --purple:#c084fc;--purpleD:rgba(192,132,252,.15);
-  --shadow:0 8px 32px rgba(0,0,0,.4);
-  --card-bg:rgba(255,255,255,.07);--card-border:rgba(255,255,255,.12);
-  --hdr-bg:rgba(15,12,41,.6);--tabbar-bg:rgba(15,12,41,.7);
-  --input-bg:rgba(255,255,255,.06);
-}
-[data-theme="glass"] body{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-attachment:fixed;}
-[data-theme="glass"] .card,[data-theme="glass"] .summary-card{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
-[data-theme="glass"] .header,[data-theme="glass"] .tab-bar{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
-[data-theme="glass"] .bg-glow{background:
-  radial-gradient(ellipse 70% 60% at 15% 20%,rgba(139,92,246,.25) 0%,transparent 55%),
-  radial-gradient(ellipse 60% 70% at 85% 75%,rgba(96,165,250,.2) 0%,transparent 55%),
-  radial-gradient(ellipse 50% 50% at 50% 50%,rgba(167,139,250,.1) 0%,transparent 60%);}
 
 html{font-size:13px;}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
@@ -138,10 +113,16 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 
 /* 비타민 */
 .quick-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
-.vit-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;background:var(--card-bg);border:1px solid var(--card-border);cursor:pointer;font-size:11px;font-weight:600;color:var(--t2);transition:all var(--tr);}
-.vit-btn.on{background:var(--accentD);border-color:rgba(110,231,183,.2);color:var(--accent);}
+.vit-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:6px 14px;border-radius:20px;
+  background:var(--s2);border:1px solid var(--border);
+  cursor:pointer;font-size:11px;font-weight:600;color:var(--t2);
+  transition:all var(--tr);height:36px;
+}
+.vit-btn.on{background:var(--accentD);border-color:rgba(110,231,183,.25);color:var(--accent);}
 .vit-btn:active{transform:scale(.96);}
-.vit-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);transition:background var(--tr);}
+.vit-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background var(--tr);}
 .vit-btn.on .vit-dot{background:var(--accent);}
 
 /* 식사 아이템 */
@@ -272,7 +253,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:200;align-items:flex-end;justify-content:center;}
 .overlay.on{display:flex;}
 .modal{background:var(--s0);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:980px;max-height:82vh;overflow-y:auto;padding:16px;animation:slideUp .25s cubic-bezier(.4,0,.2,1);}
-[data-theme="glass"] .modal{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
+
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 .modal-handle{width:36px;height:4px;background:var(--s4);border-radius:2px;margin:0 auto 14px;}
 .modal-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
@@ -347,11 +328,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .heatmap-cell.lv3{background:rgba(110,231,183,.75);}
 .heatmap-cell.lv4{background:#6ee7b7;}
 .heatmap-cell.today{outline:2px solid var(--accent);outline-offset:1px;}
-[data-theme="glass"] .heatmap-cell.lv1{background:rgba(167,139,250,.25);}
-[data-theme="glass"] .heatmap-cell.lv2{background:rgba(167,139,250,.5);}
-[data-theme="glass"] .heatmap-cell.lv3{background:rgba(167,139,250,.75);}
-[data-theme="glass"] .heatmap-cell.lv4{background:#a78bfa;}
-[data-theme="glass"] .heatmap-cell.today{outline-color:var(--accent);}
+
 .heatmap-months{display:flex;gap:3px;margin-bottom:3px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
 .heatmap-days{display:flex;flex-direction:column;gap:3px;margin-right:4px;}
 .heatmap-day-lbl{height:12px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;line-height:12px;}
@@ -403,14 +380,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
     <button class="date-btn" onclick="moveDate(-1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
     <div class="date-center"><div class="date-main" id="dateMain"></div><div class="date-sub" id="dateSub"></div></div>
     <button class="date-btn" onclick="moveDate(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
-  </div>
-  <div class="quick-row">
-    <button class="vit-btn" id="vitBtn" onclick="toggleVit()">
+    <button class="vit-btn" id="vitBtn" onclick="toggleVit()" style="margin-left:4px">
       <div class="vit-dot"></div>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="9"/><path d="M12 7v10M7 12h10"/></svg>
       비타민
     </button>
   </div>
+
   <div class="two-col">
   <div>
     <div class="summary-card">
@@ -496,7 +472,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 <div class="page" id="pCharts">
   <div class="period-tabs" id="periodTabs"><button class="period-tab on" onclick="setPer(7,this)">7일</button><button class="period-tab" onclick="setPer(14,this)">14일</button><button class="period-tab" onclick="setPer(30,this)">30일</button></div>
   <div style="font-size:10px;color:var(--t3);margin-bottom:10px">* 기록 없는 날 제외 후 집계</div>
-  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-days" id="hmDays"></div><div class="heatmap-months" id="hmMonths"></div><div class="heatmap-wrap"><div class="heatmap" id="heatmap"></div></div><div class="heatmap-stats" id="hmStats"></div></div>
+  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-container"><div class="heatmap-inner"><div class="heatmap-left" id="hmDays"></div><div class="heatmap-right"><div class="heatmap-months-row" id="hmMonths"></div><div class="heatmap-grid" id="heatmap"></div></div></div></div><div class="heatmap-stats" id="hmStats"></div></div>
   <div class="two-col">
     <div><div class="card chart-card"><div class="card-title">칼로리 추이</div><canvas id="cCal"></canvas></div><div class="card chart-card"><div class="card-title">매크로 추이</div><canvas id="cMac"></canvas></div></div>
     <div><div class="card chart-card"><div class="card-title">체중 변화</div><canvas id="cWt"></canvas></div><div class="card chart-card"><div class="card-title">누적 칼로리 경감</div><canvas id="cDef"></canvas></div></div>
@@ -568,7 +544,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 const CLIENT_ID='546059197875-saharo5c9464f6i0ftal8d9sab831rq3.apps.googleusercontent.com';
 const SCOPES='https://www.googleapis.com/auth/drive.file';
 const DRIVE_FILE_NAME='diet-diary-data.json';
-const THEMES=['dark','light','glass'];
+const THEMES=['dark','light'];
 let themeIdx=0;
 
 // ===== Drive =====
@@ -812,7 +788,7 @@ function cycleTheme(){
   const t=THEMES[themeIdx];
   document.body.setAttribute('data-theme',t);
   localStorage.setItem('dd_theme',t);
-  const labels={dark:'🌙 다크',light:'☀️ 라이트',glass:'✨ 글래스'};
+  const labels={dark:'🌙 다크',light:'☀️ 라이트'};
   showToast(labels[t]);
 }
 
@@ -868,33 +844,64 @@ function saveWeightQuick(){const v=parseFloat(document.getElementById('wbInp').v
 
 // ===== 히트맵 =====
 function renderHeatmap(){
-  const a=load();const days=a.days||{};const today=new Date();const totalWeeks=16;
-  const start=new Date(today);start.setDate(start.getDate()-totalWeeks*7+1);
-  const heatmapEl=document.getElementById('heatmap');
-  const daysEl=document.getElementById('hmDays');
-  daysEl.innerHTML=['\uc77c','','\ud654','','\ubaa9','','\ud1a0'].map(d=>'<div class="heatmap-day-lbl">'+d+'</div>').join('');
-  let html='';let prevMonth=-1;let monthLabels=new Array(totalWeeks).fill('');
-  let recordDays=0,cur=0,maxStreak=0,streak=0;
-  for(let w=0;w<totalWeeks;w++){
-    html+='<div class="heatmap-week">';
+  const a=load();const days=a.days||{};
+  const today=new Date();today.setHours(0,0,0,0);
+  const WEEKS=16;const CELL=16;const GAP=2;
+  // 시작일: 오늘 기준으로 WEEKS*7일 전 일요일로 맞춤
+  const start=new Date(today);
+  start.setDate(start.getDate()-(WEEKS*7-1));
+  // 요일 레이블 (일~토, 짝수만)
+  document.getElementById('hmDays').innerHTML=
+    ['일','','화','','목','','토'].map(d=>'<div class="heatmap-day-lbl">'+d+'</div>').join('');
+  // 월 레이블 & 그리드 생성
+  let gridHtml='';let monthHtml='';
+  let prevMonth=-1;let recordDays=0,cur=0,maxStreak=0,streak=0;
+  const monthPositions=[];
+  for(let w=0;w<WEEKS;w++){
+    let firstNewMonth=-1;
     for(let dw=0;dw<7;dw++){
       const d=new Date(start);d.setDate(d.getDate()+w*7+dw);
-      if(d>today){html+='<div class="heatmap-cell"></div>';continue;}
+      if(d.getMonth()!==prevMonth){firstNewMonth=d.getMonth();prevMonth=d.getMonth();
+        monthPositions.push({w,label:d.toLocaleDateString('ko',{month:'short'})});}
+    }
+  }
+  // 월 레이블 행
+  let lastW=0;
+  monthHtml=monthPositions.map(mp=>{
+    const spacer=mp.w-lastW;lastW=mp.w+1;
+    return '<div class="heatmap-month-spacer" style="width:'+(spacer*(CELL+GAP))+'px"></div><div class="heatmap-month-lbl">'+mp.label+'</div>';
+  }).join('');
+  document.getElementById('hmMonths').innerHTML=monthHtml;
+  // 셀 그리드
+  for(let w=0;w<WEEKS;w++){
+    gridHtml+='<div class="heatmap-week">';
+    for(let dw=0;dw<7;dw++){
+      const d=new Date(start);d.setDate(d.getDate()+w*7+dw);
+      const isFuture=d>today;
       const ky=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      const dy=days[ky];const rec=hasRecord(dy);const isToday=ky===localDK();
-      if(d.getMonth()!==prevMonth){monthLabels[w]=d.toLocaleDateString('ko',{month:'short'});prevMonth=d.getMonth();}
+      const dy=days[ky];const rec=!isFuture&&hasRecord(dy);const isToday=ky===localDK();
       let lv=0;
       if(rec){recordDays++;lv=1;let tc=0;slots.forEach(sl=>(dy.meals[sl]||[]).forEach(i=>tc+=i.cal||0));if(tc>800)lv=2;if(tc>1200)lv=3;if(tc>1500)lv=4;}
-      if(rec){cur++;}else{if(cur>maxStreak)maxStreak=cur;cur=0;}
-      html+='<div class="heatmap-cell'+(lv>0?' lv'+lv:'')+(isToday?' today':'')+'" title="'+ky+'"></div>';
+      if(!isFuture){if(rec){cur++;}else{if(cur>maxStreak)maxStreak=cur;cur=0;}}
+      gridHtml+='<div class="heatmap-cell'+(isFuture?' future':lv>0?' lv'+lv:'')+(isToday?' today':'')+'" title="'+ky+(rec?' ✓':'')+'"></div>';
     }
-    html+='</div>';
+    gridHtml+='</div>';
   }
   if(cur>maxStreak)maxStreak=cur;
   for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const ky=localDK(d);if(hasRecord(days[ky]))streak++;else if(i>0)break;}
-  heatmapEl.innerHTML=html;
-  document.getElementById('hmMonths').innerHTML=monthLabels.map(m=>'<div style="width:45px;text-align:left;font-size:8px;color:var(--t3);font-family:monospace">'+m+'</div>').join('');
-  document.getElementById('hmStats').innerHTML='<div class="heatmap-stat">\uc5f0\uc18d <strong>'+streak+'\uc77c</strong></div><div class="heatmap-stat">\ucd5c\uc7a5 <strong>'+maxStreak+'\uc77c</strong></div><div class="heatmap-stat">\ucd1d \uae30\ub85d <strong>'+recordDays+'\uc77c</strong></div>';
+  document.getElementById('heatmap').innerHTML=gridHtml;
+  document.getElementById('hmStats').innerHTML=
+    '<div class="heatmap-stat">연속 <strong>'+streak+'일</strong></div>'+
+    '<div class="heatmap-stat">최장 <strong>'+maxStreak+'일</strong></div>'+
+    '<div class="heatmap-stat">총 기록 <strong>'+recordDays+'일</strong></div>'+
+    '<div class="heatmap-legend">'+
+    '<span>적음</span>'+
+    '<div class="heatmap-legend-cell" style="background:var(--s3)"></div>'+
+    '<div class="heatmap-legend-cell lv1"></div>'+
+    '<div class="heatmap-legend-cell lv2"></div>'+
+    '<div class="heatmap-legend-cell lv3"></div>'+
+    '<div class="heatmap-legend-cell lv4"></div>'+
+    '<span>많음</span></div>';
 }
 
 // ===== MET \uae30\ubc18 \uc6b4\ub3d9 \uce7c\ub85c\ub9ac =====
