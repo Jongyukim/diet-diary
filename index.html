@@ -326,8 +326,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .heatmap-cell.lv1{background:rgba(110,231,183,.25);}
 .heatmap-cell.lv2{background:rgba(110,231,183,.5);}
 .heatmap-cell.lv3{background:rgba(110,231,183,.75);}
-.heatmap-cell.lv4{background:#6ee7b7;}
-.heatmap-cell.today{outline:2px solid var(--accent);outline-offset:1px;}
+
+
 
 .heatmap-months{display:flex;gap:3px;margin-bottom:3px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
 .heatmap-days{display:flex;flex-direction:column;gap:3px;margin-right:4px;}
@@ -472,7 +472,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 <div class="page" id="pCharts">
   <div class="period-tabs" id="periodTabs"><button class="period-tab on" onclick="setPer(7,this)">7일</button><button class="period-tab" onclick="setPer(14,this)">14일</button><button class="period-tab" onclick="setPer(30,this)">30일</button></div>
   <div style="font-size:10px;color:var(--t3);margin-bottom:10px">* 기록 없는 날 제외 후 집계</div>
-  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-container"><div class="heatmap-inner"><div class="heatmap-left" id="hmDays"></div><div class="heatmap-right"><div class="heatmap-months-row" id="hmMonths"></div><div class="heatmap-grid" id="heatmap"></div></div></div></div><div class="heatmap-stats" id="hmStats"></div></div>
+  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-wrap"><svg class="heatmap-svg" id="heatmapSvg"></svg></div><div class="heatmap-stats" id="hmStats"></div></div>
   <div class="two-col">
     <div><div class="card chart-card"><div class="card-title">칼로리 추이</div><canvas id="cCal"></canvas></div><div class="card chart-card"><div class="card-title">매크로 추이</div><canvas id="cMac"></canvas></div></div>
     <div><div class="card chart-card"><div class="card-title">체중 변화</div><canvas id="cWt"></canvas></div><div class="card chart-card"><div class="card-title">누적 칼로리 경감</div><canvas id="cDef"></canvas></div></div>
@@ -845,62 +845,76 @@ function saveWeightQuick(){const v=parseFloat(document.getElementById('wbInp').v
 // ===== 히트맵 =====
 function renderHeatmap(){
   const a=load();const days=a.days||{};
+  const WEEKS=16;const S=13;const G=3;const W=S+G;
+  const COLS=WEEKS;const ROWS=7;
+  const PAD_LEFT=24;const PAD_TOP=20;
+  const svgW=PAD_LEFT+COLS*W;const svgH=PAD_TOP+ROWS*W;
+  const svg=document.getElementById('heatmapSvg');
+  svg.setAttribute('width',svgW);svg.setAttribute('height',svgH);
+  svg.setAttribute('viewBox','0 0 '+svgW+' '+svgH);
+
   const today=new Date();today.setHours(0,0,0,0);
-  const WEEKS=16;const CELL=16;const GAP=2;
-  // 시작일: 오늘 기준으로 WEEKS*7일 전 일요일로 맞춤
+  // 시작: 오늘이 포함된 주의 토요일 기준 WEEKS주 전 일요일
+  const todayDay=today.getDay(); // 0=일 6=토
   const start=new Date(today);
-  start.setDate(start.getDate()-(WEEKS*7-1));
-  // 요일 레이블 (일~토, 짝수만)
-  document.getElementById('hmDays').innerHTML=
-    ['일','','화','','목','','토'].map(d=>'<div class="heatmap-day-lbl">'+d+'</div>').join('');
-  // 월 레이블 & 그리드 생성
-  let gridHtml='';let monthHtml='';
-  let prevMonth=-1;let recordDays=0,cur=0,maxStreak=0,streak=0;
-  const monthPositions=[];
+  start.setDate(today.getDate()-todayDay-(WEEKS-1)*7);
+
+  let html='';
+  let recordDays=0,cur=0,maxStreak=0,streak=0;
+  let prevMonth=-1;
+
+  // 요일 레이블
+  const dayLabels=['일','','화','','목','','토'];
+  dayLabels.forEach((d,i)=>{
+    if(!d)return;
+    html+='<text x="'+(PAD_LEFT-4)+'" y="'+(PAD_TOP+i*W+S*0.75)+'" text-anchor="end" font-size="9" fill="var(--t3)" font-family="'JetBrains Mono',monospace">'+d+'</text>';
+  });
+
+  // 셀 & 월 레이블
   for(let w=0;w<WEEKS;w++){
-    let firstNewMonth=-1;
     for(let dw=0;dw<7;dw++){
-      const d=new Date(start);d.setDate(d.getDate()+w*7+dw);
-      if(d.getMonth()!==prevMonth){firstNewMonth=d.getMonth();prevMonth=d.getMonth();
-        monthPositions.push({w,label:d.toLocaleDateString('ko',{month:'short'})});}
-    }
-  }
-  // 월 레이블 행
-  let lastW=0;
-  monthHtml=monthPositions.map(mp=>{
-    const spacer=mp.w-lastW;lastW=mp.w+1;
-    return '<div class="heatmap-month-spacer" style="width:'+(spacer*(CELL+GAP))+'px"></div><div class="heatmap-month-lbl">'+mp.label+'</div>';
-  }).join('');
-  document.getElementById('hmMonths').innerHTML=monthHtml;
-  // 셀 그리드
-  for(let w=0;w<WEEKS;w++){
-    gridHtml+='<div class="heatmap-week">';
-    for(let dw=0;dw<7;dw++){
-      const d=new Date(start);d.setDate(d.getDate()+w*7+dw);
+      const d=new Date(start);d.setDate(start.getDate()+w*7+dw);
       const isFuture=d>today;
       const ky=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      const dy=days[ky];const rec=!isFuture&&hasRecord(dy);const isToday=ky===localDK();
-      let lv=0;
-      if(rec){recordDays++;lv=1;let tc=0;slots.forEach(sl=>(dy.meals[sl]||[]).forEach(i=>tc+=i.cal||0));if(tc>800)lv=2;if(tc>1200)lv=3;if(tc>1500)lv=4;}
-      if(!isFuture){if(rec){cur++;}else{if(cur>maxStreak)maxStreak=cur;cur=0;}}
-      gridHtml+='<div class="heatmap-cell'+(isFuture?' future':lv>0?' lv'+lv:'')+(isToday?' today':'')+'" title="'+ky+(rec?' ✓':'')+'"></div>';
+      const isToday=ky===localDK();
+      const dy=days[ky];const rec=!isFuture&&hasRecord(dy);
+
+      // 월 레이블 (각 월 첫째주 일요일)
+      if(dw===0&&d.getMonth()!==prevMonth){
+        prevMonth=d.getMonth();
+        const mLabel=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'][d.getMonth()];
+        html+='<text x="'+(PAD_LEFT+w*W)+'" y="'+(PAD_TOP-5)+'" font-size="9" fill="var(--t3)" font-family="'JetBrains Mono',monospace">'+mLabel+'</text>';
+      }
+
+      let fill='var(--s3)';
+      if(isFuture){fill='transparent';}
+      else if(rec){
+        recordDays++;cur++;
+        let tc=0;slots.forEach(sl=>(dy.meals[sl]||[]).forEach(i=>tc+=i.cal||0));
+        if(tc>1500)fill='var(--accent)';
+        else if(tc>1200)fill='rgba(110,231,183,.75)';
+        else if(tc>800)fill='rgba(110,231,183,.45)';
+        else fill='rgba(110,231,183,.2)';
+      }else{if(cur>maxStreak)maxStreak=cur;cur=0;}
+
+      const x=PAD_LEFT+w*W;const y=PAD_TOP+dw*W;
+      const stroke=isToday?'var(--accent)':'none';
+      const sw=isToday?'1.5':'0';
+      if(!isFuture){
+        html+='<rect x="'+x+'" y="'+y+'" width="'+S+'" height="'+S+'" rx="3" ry="3" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"><title>'+ky+(rec?' ✓':'')+'</title></rect>';
+      }
     }
-    gridHtml+='</div>';
   }
   if(cur>maxStreak)maxStreak=cur;
   for(let i=0;i<365;i++){const d=new Date(today);d.setDate(d.getDate()-i);const ky=localDK(d);if(hasRecord(days[ky]))streak++;else if(i>0)break;}
-  document.getElementById('heatmap').innerHTML=gridHtml;
+
+  svg.innerHTML=html;
   document.getElementById('hmStats').innerHTML=
     '<div class="heatmap-stat">연속 <strong>'+streak+'일</strong></div>'+
     '<div class="heatmap-stat">최장 <strong>'+maxStreak+'일</strong></div>'+
     '<div class="heatmap-stat">총 기록 <strong>'+recordDays+'일</strong></div>'+
-    '<div class="heatmap-legend">'+
-    '<span>적음</span>'+
-    '<div class="heatmap-legend-cell" style="background:var(--s3)"></div>'+
-    '<div class="heatmap-legend-cell lv1"></div>'+
-    '<div class="heatmap-legend-cell lv2"></div>'+
-    '<div class="heatmap-legend-cell lv3"></div>'+
-    '<div class="heatmap-legend-cell lv4"></div>'+
+    '<div class="heatmap-legend"><span>적음</span>'+
+    ['transparent','rgba(110,231,183,.2)','rgba(110,231,183,.45)','rgba(110,231,183,.75)','var(--accent)'].map(c=>'<svg width="11" height="11"><rect width="11" height="11" rx="2" fill="'+c+'" stroke="var(--border)"/></svg>').join('')+
     '<span>많음</span></div>';
 }
 
