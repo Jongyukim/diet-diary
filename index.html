@@ -319,19 +319,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .weight-trend.same{color:var(--t3);}
 
 /* 히트맵 */
-.heatmap-wrap{overflow-x:auto;padding-bottom:4px;}
-.heatmap{display:flex;gap:3px;}
-.heatmap-week{display:flex;flex-direction:column;gap:3px;}
-.heatmap-cell{width:12px;height:12px;border-radius:2px;background:var(--s3);transition:background var(--tr);cursor:default;position:relative;}
-.heatmap-cell.lv1{background:rgba(110,231,183,.25);}
-.heatmap-cell.lv2{background:rgba(110,231,183,.5);}
-.heatmap-cell.lv3{background:rgba(110,231,183,.75);}
 
 
 
-.heatmap-months{display:flex;gap:3px;margin-bottom:3px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
-.heatmap-days{display:flex;flex-direction:column;gap:3px;margin-right:4px;}
-.heatmap-day-lbl{height:12px;font-size:8px;color:var(--t3);font-family:'JetBrains Mono',monospace;line-height:12px;}
+
+
+
+
 .heatmap-stats{display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--t3);}
 .heatmap-stat strong{color:var(--t1);font-family:'JetBrains Mono',monospace;}
 
@@ -867,7 +861,7 @@ function renderHeatmap(){
   const dayLabels=['일','','화','','목','','토'];
   dayLabels.forEach((d,i)=>{
     if(!d)return;
-    html+='<text x="'+(PAD_LEFT-4)+'" y="'+(PAD_TOP+i*W+S*0.75)+'" text-anchor="end" font-size="9" fill="var(--t3)" font-family="'JetBrains Mono',monospace">'+d+'</text>';
+    html+='<text x="'+(PAD_LEFT-4)+'" y="'+(PAD_TOP+i*W+S*0.75)+'" text-anchor="end" font-size="9" fill="var(--t3)" font-family="JetBrains Mono, monospace">'+d+'</text>';
   });
 
   // 셀 & 월 레이블
@@ -883,7 +877,7 @@ function renderHeatmap(){
       if(dw===0&&d.getMonth()!==prevMonth){
         prevMonth=d.getMonth();
         const mLabel=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'][d.getMonth()];
-        html+='<text x="'+(PAD_LEFT+w*W)+'" y="'+(PAD_TOP-5)+'" font-size="9" fill="var(--t3)" font-family="'JetBrains Mono',monospace">'+mLabel+'</text>';
+        html+='<text x="'+(PAD_LEFT+w*W)+'" y="'+(PAD_TOP-5)+'" font-size="9" fill="var(--t3)" font-family="JetBrains Mono, monospace">'+mLabel+'</text>';
       }
 
       let fill='var(--s3)';
