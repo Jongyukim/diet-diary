@@ -329,6 +329,9 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .heatmap-stats{display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--t3);}
 .heatmap-stat strong{color:var(--t1);font-family:'JetBrains Mono',monospace;}
 
+.fqty-btn{background:var(--s3);border:1px solid var(--border);border-radius:5px;width:22px;height:22px;cursor:pointer;font-size:13px;color:var(--t1);display:flex;align-items:center;justify-content:center;line-height:1;transition:all var(--tr);}
+.fqty-btn:hover{background:var(--accent);color:#000;border-color:transparent;}
+.fqty-btn:active{transform:scale(.9);}
 ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px;}
 </style>
 </head>
@@ -641,11 +644,11 @@ const presets=[
   {id:'bh',nk:'뼈해장국 고기',cal:180,ca:0,f:12,p:18,sk:'80g'},
 ];
 
-let selFoods=new Set(); // 멀티선택 Set
+let selFoods=new Map(); // id -> qty
 
 function allF(){return[...gcf().map(f=>({...f,star:true})),...presets];}
 function openM(sl){
-  cSlot=sl;selFoods=new Set();
+  cSlot=sl;selFoods=new Map();
   document.getElementById('fSrch').value='';
   document.getElementById('manualForm').classList.remove('on');
   document.getElementById('fModal').classList.add('on');
@@ -660,36 +663,55 @@ function filterF(){
   const all=allF();
   const fil=q?all.filter(f=>(f.nk||f.name||'').toLowerCase().includes(q)):all;
   document.getElementById('fList').innerHTML=fil.map(f=>{
-    const id=f.id,nm=f.nk||f.name,sv=f.sk||'',checked=selFoods.has(id);
-    return`<div class="food-item${checked?' checked':''}" onclick="toggleFood('${id}')">
+    const id=f.id,nm=f.nk||f.name,sv=f.sk||'',checked=selFoods.has(id),qty=selFoods.get(id)||1;
+    return`<div class="food-item${checked?' checked':''}" data-fid="${id}" onclick="toggleFood('${id}')">
       <div class="food-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="food-info"><div class="food-name">${f.star?'★ ':''}${nm}</div><div class="food-sub">${sv}</div></div>
-      <div class="food-macro">${f.cal}kcal<br>${f.ca||0}c ${f.f||0}f ${f.p||0}p</div>
+      <div class="food-macro">${f.cal}kcal · ${f.ca||0}c ${f.f||0}f ${f.p||0}p</div>
+      <div class="fqty" style="display:${checked?'flex':'none'};align-items:center;gap:4px;margin-left:6px" onclick="event.stopPropagation()">
+        <button class="fqty-btn" onclick="changeQty('${id}',-1)">－</button>
+        <span class="fqty-val" style="font-family:monospace;font-size:11px;font-weight:700;min-width:28px;text-align:center">${qty}</span>
+        <button class="fqty-btn" onclick="changeQty('${id}',1)">＋</button>
+      </div>
     </div>`;
   }).join('');
   updateSelCount();
 }
 function toggleFood(id){
-  if(selFoods.has(id))selFoods.delete(id);else selFoods.add(id);
-  // 해당 아이템만 업데이트
-  const el=document.querySelector(`.food-item[onclick="toggleFood('${id}')"]`);
-  if(el){if(selFoods.has(id))el.classList.add('checked');else el.classList.remove('checked');}
+  if(selFoods.has(id)){selFoods.delete(id);}else{selFoods.set(id,1);}
+  const el=document.querySelector(`[data-fid="${id}"]`);
+  if(el){
+    if(selFoods.has(id)){el.classList.add('checked');el.querySelector('.fqty').style.display='flex';}
+    else{el.classList.remove('checked');el.querySelector('.fqty').style.display='none';}
+  }
+  updateSelCount();
+}
+function changeQty(id,delta){
+  if(!selFoods.has(id))return;
+  const f=allF().find(x=>x.id===id);
+  const step=f&&f.sk&&f.sk.includes('g')?50:0.5;
+  const cur=selFoods.get(id)||1;
+  const nv=Math.max(0.5,Math.round((cur+delta*step)*10)/10);
+  selFoods.set(id,nv);
+  const el=document.querySelector(`[data-fid="${id}"]`);
+  if(el){el.querySelector('.fqty-val').textContent=nv;}
   updateSelCount();
 }
 function updateSelCount(){
   const c=document.getElementById('selCount');
   if(selFoods.size>0){
-    const total=Array.from(selFoods).reduce((s,id)=>{const f=allF().find(x=>x.id===id);return s+(f?f.cal:0);},0);
+    const total=Array.from(selFoods.entries()).reduce((s,[id,qty])=>{const f=allF().find(x=>x.id===id);return s+(f?f.cal*qty:0);},0);
     c.textContent=`${selFoods.size}개 선택 · ${Math.round(total)} kcal`;
   }else{c.textContent='';}
 }
-function clearSel(){selFoods=new Set();filterF();}
+function clearSel(){selFoods=new Map();filterF();}
 function confirmMulti(){
   if(selFoods.size===0){showToast('음식을 선택하세요');return;}
   const k=localDK(),d=gd(k);
-  selFoods.forEach(id=>{
+  selFoods.forEach((qty,id)=>{
     const f=allF().find(x=>x.id===id);if(!f)return;
-    d.meals[cSlot].push({name:f.nk||f.name,cal:f.cal,ca:f.ca||0,f:f.f||0,p:f.p||0});
+    const nm=qty!==1?`${f.nk||f.name} x${qty}`:(f.nk||f.name);
+    d.meals[cSlot].push({name:nm,cal:f.cal*qty,ca:(f.ca||0)*qty,f:(f.f||0)*qty,p:(f.p||0)*qty});
   });
   sd(k,d);closeM();render();showToast(`${selFoods.size}개 추가 ✅`);
 }
@@ -701,7 +723,7 @@ function saveTemplate(){
   const name=document.getElementById('tplName').value.trim();
   if(!name){showToast('템플릿 이름을 입력하세요');return;}
   if(selFoods.size===0){showToast('음식을 먼저 선택하세요');return;}
-  const items=Array.from(selFoods).map(id=>allF().find(x=>x.id===id)).filter(Boolean);
+  const items=Array.from(selFoods.entries()).map(([id,qty])=>{const f=allF().find(x=>x.id===id);return f?{...f,qty}:null;}).filter(Boolean);
   const ts=getTemplates();ts.push({id:'t'+Date.now(),name,items:items.map(f=>({id:f.id,nk:f.nk||f.name,cal:f.cal,ca:f.ca||0,f:f.f||0,p:f.p||0}))});
   saveTemplates(ts);document.getElementById('tplName').value='';renderTemplates();showToast(`"${name}" 템플릿 저장 ✅`);
 }
