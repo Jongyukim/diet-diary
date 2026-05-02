@@ -2,6 +2,15 @@ const CACHE = 'dietdiary-v1';
 const ASSETS = [
   '/diet-diary/',
   '/diet-diary/index.html',
+  '/diet-diary/manifest.json',
+  '/diet-diary/css/style.css',
+  '/diet-diary/js/presets.js',
+  '/diet-diary/js/data.js',
+  '/diet-diary/js/exercise.js',
+  '/diet-diary/js/render.js',
+  '/diet-diary/js/charts.js',
+  '/diet-diary/js/ai.js',
+  '/diet-diary/js/app.js',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap',
 ];
