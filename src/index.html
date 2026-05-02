@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DietDiary</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="dark">
+<div class="bg-glow"></div>
+<div class="toast" id="toast"></div>
+<div class="app">
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L8 8H3l4 4-1.5 6L12 15l6.5 3L17 12l4-4h-5z"/></svg></div>
+    DietDiary
+  </div>
+  <div class="hdr-r">
+    <div class="hdr-btn" id="driveBtn" onclick="handleDriveClick()">
+      <div class="drive-dot off" id="driveDot"></div>
+      <span id="driveLabel">Drive</span>
+    </div>
+    <div class="hdr-btn" onclick="cycleTheme()" id="themeBtn" title="테마 변경">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    </div>
+    <div class="hdr-btn" style="color:var(--orange)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span id="streakN">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- 체중 빠른입력 바 -->
+<div class="weight-bar">
+  <div class="weight-bar-lbl">오늘 체중</div>
+  <div class="weight-bar-val" id="wbVal">--</div>
+  <span style="font-size:9px;color:var(--t3)">kg</span>
+  <input class="weight-quick-inp" type="number" id="wbInp" placeholder="00.0" step="0.1" min="30" max="200" onkeydown="if(event.key==='Enter')saveWeightQuick()">
+  <button class="weight-save-btn" onclick="saveWeightQuick()">저장</button>
+  <div class="weight-trend" id="wbTrend"></div>
+</div>
+
+<!-- 일기 -->
+<div class="page on" id="pDiary">
+  <div class="date-nav">
+    <button class="date-btn" onclick="moveDate(-1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="date-center"><div class="date-main" id="dateMain"></div><div class="date-sub" id="dateSub"></div></div>
+    <button class="date-btn" onclick="moveDate(1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    <button class="vit-btn" id="vitBtn" onclick="toggleVit()" style="margin-left:4px">
+      <div class="vit-dot"></div>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="9"/><path d="M12 7v10M7 12h10"/></svg>
+      비타민
+    </button>
+  </div>
+
+  <div class="two-col">
+  <div>
+    <div class="summary-card">
+      <div class="summary-top">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 88 88"><circle class="ring-bg" cx="44" cy="44" r="37"/><circle class="ring-fill" id="ringCal" cx="44" cy="44" r="37" stroke="url(#rg)" stroke-dasharray="232.48" stroke-dashoffset="232.48"/><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--accent2)"/><stop offset="100%" stop-color="var(--blue)"/></linearGradient></defs></svg>
+          <div class="ring-center"><div class="ring-val" id="rCalV">0</div><div class="ring-lbl">kcal</div></div>
+        </div>
+        <div class="macros-col">
+          <div class="macro-row"><div class="macro-dot" style="background:var(--blue)"></div><span class="macro-name">탄수화물</span><span class="macro-val" id="mC" style="color:var(--blue)">0g</span><div class="macro-bar"><div class="macro-bar-fill" id="bC" style="width:0%;background:var(--blue)"></div></div></div>
+          <div class="macro-row"><div class="macro-dot" style="background:var(--orange)"></div><span class="macro-name">지방</span><span class="macro-val" id="mF" style="color:var(--orange)">0g</span><div class="macro-bar"><div class="macro-bar-fill" id="bF" style="width:0%;background:var(--orange)"></div></div></div>
+          <div class="macro-row"><div class="macro-dot" style="background:var(--purple)"></div><span class="macro-name">단백질</span><span class="macro-val" id="mP" style="color:var(--purple)">0g</span><div class="macro-bar"><div class="macro-bar-fill" id="bP" style="width:0%;background:var(--purple)"></div></div></div>
+        </div>
+      </div>
+      <div id="ratioArea"></div>
+      <div style="height:10px"></div>
+      <div class="deficit-row" id="deficitRow"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>수분 섭취</div>
+      <div class="water-track"><div class="water-fill" id="waterFill"></div><div class="water-label-track"><span class="water-val-txt"><span id="waterN">0</span> ml</span><span class="water-goal-txt">목표 2000ml</span></div><input type="range" class="water-slider" id="waterSlider" min="0" max="2000" step="50" value="0" oninput="setWater(this.value)"></div>
+      <div class="water-ticks"><span>0</span><span>500</span><span>1000</span><span>1500</span><span>2000</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>신체 정보</div>
+      <div class="body-grid">
+        <div class="body-input-group"><div class="input-lbl">키(cm)</div><input class="inp" type="number" id="iH" oninput="saveBS()"></div>
+        <div class="body-input-group"><div class="input-lbl">체중(kg)</div><input class="inp" type="number" id="iW" step="0.1" oninput="saveBS()"></div>
+        <div class="body-input-group"><div class="input-lbl">목표(kg)</div><input class="inp" type="number" id="iG" step="0.1" oninput="saveBS()"></div>
+        <div class="body-input-group"><div class="input-lbl">나이</div><input class="inp" type="number" id="iAge" oninput="saveBS()"></div>
+      </div>
+      <div class="goal-banner"><div><div class="goal-num" id="gR">-</div><div class="goal-unit">kg 남음</div></div><div class="goal-info"><div style="font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase">목표까지</div><div class="goal-bar-wrap"><div class="goal-bar-fill" id="gFi" style="width:0%"></div></div><div class="goal-meta">BMI <span id="gBMI">-</span> · <span id="gPct">0</span>% 달성</div></div></div>
+    </div>
+    <div class="card"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>메모</div><textarea class="comment-area" id="commentTA" placeholder="오늘 하루를 기록하세요..." oninput="saveComment()"></textarea></div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>식사</div>
+      <div id="mealArea"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>운동</div>
+      <div id="exLogList"></div>
+      <div class="ex-total">총 소모: <span id="exTotalCal">0</span> kcal</div>
+      <div style="height:10px"></div>
+      <div class="ex-tabs">
+        <button class="ex-tab on" onclick="switchExTab('cardio',this)">🏃 유산소</button>
+        <button class="ex-tab" onclick="switchExTab('strength',this)">🏋️ 무산소</button>
+      </div>
+      <div class="ex-section on" id="exCardio">
+        <div class="cardio-grid" id="cardioGrid"></div>
+        <div class="input-row">
+          <div class="input-group"><div class="input-lbl">시간(분)</div><input class="inp" type="number" id="cardioMin" placeholder="30" min="1" oninput="updateCardioResult()"></div>
+          <div class="input-group"><div class="input-lbl">거리(km)</div><input class="inp" type="number" id="cardioDist" placeholder="5.0" step="0.1" min="0" oninput="updateCardioResult()"></div>
+          <div class="input-group"><div class="input-lbl">페이스</div><div class="inp readonly" id="cardioPace">-</div></div>
+        </div>
+        <div class="input-lbl" style="margin-bottom:5px">강도</div>
+        <div class="intensity-row">
+          <button class="int-btn low on" onclick="setIntensity('low',this)">저강도</button>
+          <button class="int-btn mid" onclick="setIntensity('mid',this)">중강도</button>
+          <button class="int-btn hi" onclick="setIntensity('hi',this)">고강도</button>
+        </div>
+        <div class="result-bar" id="cardioResult"><span style="color:var(--t3);font-size:10px">운동을 선택하세요</span></div>
+        <button class="btn-primary" onclick="addCardio()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>유산소 추가</button>
+      </div>
+      <div class="ex-section" id="exStrength">
+        <div class="muscle-tabs" id="muscleTabs"></div>
+        <div id="strengthList" style="max-height:180px;overflow-y:auto;margin-bottom:8px;"></div>
+        <div class="input-row">
+          <div class="input-group"><div class="input-lbl">세트</div><input class="inp" type="number" id="strSets" placeholder="3" min="1" oninput="updateStrResult()"></div>
+          <div class="input-group"><div class="input-lbl">횟수</div><input class="inp" type="number" id="strReps" placeholder="10" min="1" oninput="updateStrResult()"></div>
+          <div class="input-group"><div class="input-lbl">무게(kg)</div><input class="inp" type="number" id="strWeight" placeholder="60" step="0.5" min="0" oninput="updateStrResult()"></div>
+        </div>
+        <div class="result-bar" id="strengthResult"><span style="color:var(--t3);font-size:10px">운동을 선택하세요</span></div>
+        <button class="btn-primary" onclick="addStrength()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>무산소 추가</button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- 통계 -->
+<div class="page" id="pCharts">
+  <div class="period-tabs" id="periodTabs"><button class="period-tab on" onclick="setPer(7,this)">7일</button><button class="period-tab" onclick="setPer(14,this)">14일</button><button class="period-tab" onclick="setPer(30,this)">30일</button></div>
+  <div style="font-size:10px;color:var(--t3);margin-bottom:10px">* 기록 없는 날 제외 후 집계</div>
+  <div class="card" style="margin-bottom:10px"><div class="card-title"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>기록 히트맵 (최근 16주)</div><div class="heatmap-wrap"><svg class="heatmap-svg" id="heatmapSvg"></svg></div><div class="heatmap-stats" id="hmStats"></div></div>
+  <div class="two-col">
+    <div><div class="card chart-card"><div class="card-title">칼로리 추이</div><canvas id="cCal"></canvas></div><div class="card chart-card"><div class="card-title">매크로 추이</div><canvas id="cMac"></canvas></div></div>
+    <div><div class="card chart-card"><div class="card-title">체중 변화</div><canvas id="cWt"></canvas></div><div class="card chart-card"><div class="card-title">누적 칼로리 경감</div><canvas id="cDef"></canvas></div></div>
+  </div>
+</div>
+
+<!-- AI -->
+<div class="page" id="pAI">
+  <!-- API 키 -->
+  <div class="card" style="margin-top:10px">
+    <div class="card-title"><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>OpenAI API 키</div>
+    <div id="apiKeyStatus" style="font-size:10px;color:var(--t3);margin-bottom:8px">❌ API 키 없음</div>
+    <div style="display:flex;gap:6px">
+      <input class="inp" type="password" id="aiKeyInp" placeholder="sk-..." style="flex:1;text-align:left;padding:7px 8px">
+      <button class="btn-primary" style="width:auto;padding:7px 14px" onclick="saveApiKey()">저장</button>
+    </div>
+  </div>
+  <!-- AI 기능 탭 -->
+  <div class="ai-tabs">
+    <button class="ai-tab on" onclick="switchAITab('scan',this)">📷 스캔</button>
+    <button class="ai-tab" onclick="switchAITab('chat',this)">💬 컨설턴트</button>
+    <button class="ai-tab" onclick="switchAITab('report',this)">📋 리포트</button>
+  </div>
+  <!-- 영양성분 스캔 -->
+  <div class="ai-section on" id="aiScan">
+    <div class="card">
+      <div class="card-title"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>영양성분표 스캔</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <label class="btn-outline" style="cursor:pointer;text-align:center;flex:1">
+          📁 이미지 선택
+          <input type="file" id="scanFileInp" accept="image/*" style="display:none" onchange="handleScanImage(event)">
+        </label>
+        <button class="btn-primary" id="scanBtn" onclick="runScan()" style="flex:1">🔍 분석</button>
+      </div>
+      <img id="scanPreview" style="display:none;width:100%;border-radius:var(--radius-sm);margin-bottom:10px;max-height:220px;object-fit:contain;background:var(--s2)">
+      <div id="scanResultArea" style="display:none">
+        <div class="card-title" style="margin-top:4px;margin-bottom:8px">분석 결과 (수정 가능)</div>
+        <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+          <div class="input-group" style="flex:2;min-width:120px"><div class="input-lbl">제품명</div><input class="inp" id="scanName" style="text-align:left;padding:7px 8px"></div>
+          <div class="input-group" style="flex:1;min-width:80px"><div class="input-lbl">1회 제공량</div><input class="inp" id="scanServing" style="text-align:left;padding:7px 8px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+          <div class="input-group"><div class="input-lbl">칼로리</div><input class="inp" type="number" id="scanCal"></div>
+          <div class="input-group"><div class="input-lbl">탄수화물</div><input class="inp" type="number" id="scanCarb"></div>
+          <div class="input-group"><div class="input-lbl">지방</div><input class="inp" type="number" id="scanFat"></div>
+          <div class="input-group"><div class="input-lbl">단백질</div><input class="inp" type="number" id="scanProtein"></div>
+        </div>
+        <button class="btn-primary" onclick="saveScanResult()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>커스텀 식품으로 저장</button>
+      </div>
+    </div>
+  </div>
+  <!-- 채팅 컨설턴트 -->
+  <div class="ai-section" id="aiChat">
+    <div class="card" style="display:flex;flex-direction:column;height:460px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>영양 컨설턴트</div>
+        <button class="btn-outline" style="padding:4px 10px;font-size:9px;flex:none" onclick="clearChatHistory()">초기화</button>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input class="inp" type="text" id="chatInp" placeholder="질문을 입력하세요..." style="flex:1;text-align:left;padding:7px 8px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+        <button class="btn-primary" id="chatSendBtn" onclick="sendChat()" style="width:auto;padding:7px 16px;white-space:nowrap">전송</button>
+      </div>
+    </div>
+  </div>
+  <!-- 주간 리포트 -->
+  <div class="ai-section" id="aiReport">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>주간 리포트</div>
+        <button class="btn-primary" id="reportBtn" onclick="generateReport()" style="width:auto;padding:6px 14px;font-size:10px">📋 리포트 생성</button>
+      </div>
+      <div id="reportContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div class="page" id="pSet">
+
+  <!-- 영양성분 스캔 -->
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      영양성분 스캔
+    </div>
+    <input type="file" id="settingsScanInput" accept="image/*" capture="environment" style="display:none" onchange="handleScanFile(event)">
+    <div class="scan-area" id="settingsScanArea" onclick="triggerScanInput()">
+      <div class="scan-placeholder" id="settingsScanPlaceholder">
+        <div class="scan-placeholder-icon">📷</div>
+        <div class="scan-placeholder-text">사진 선택 또는 촬영</div>
+        <div class="scan-placeholder-sub">영양성분표를 찍으면 자동으로 분석해요</div>
+      </div>
+      <img id="settingsScanImg" class="scan-preview-img" style="display:none" alt="미리보기">
+    </div>
+    <button class="btn-primary" id="settingsScanAnalyzeBtn" onclick="runSettingsScan()" style="display:none;margin-top:8px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      분석하기
+    </button>
+    <div class="scan-loading" id="settingsScanLoading">
+      <div class="spinner"></div>
+      <span>GPT-4o 분석 중...</span>
+    </div>
+    <div id="settingsScanResultForm" style="display:none">
+      <div class="scan-result-title">분석 결과 확인 및 수정</div>
+      <div id="settingsScanFields"></div>
+      <button class="btn-primary" onclick="saveSettingsScan()" style="margin-top:10px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        커스텀 식품으로 저장
+      </button>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <div>
+      <div class="card"><div class="card-title">목표 설정</div><div class="target-grid"><div class="body-input-group"><div class="input-lbl">칼로리</div><input class="inp" type="number" id="sCal" oninput="saveTgt()"></div><div class="body-input-group"><div class="input-lbl">탄수화물(g)</div><input class="inp" type="number" id="sCarb" oninput="saveTgt()"></div><div class="body-input-group"><div class="input-lbl">지방(g)</div><input class="inp" type="number" id="sFat" oninput="saveTgt()"></div><div class="body-input-group"><div class="input-lbl">단백질(g)</div><input class="inp" type="number" id="sPro" oninput="saveTgt()"></div></div></div>
+      <div class="card"><div class="card-title">Google Drive</div><div style="font-size:10px;color:var(--t3);margin-bottom:8px" id="driveInfo"></div><div style="display:flex;flex-direction:column;gap:5px"><button class="btn-outline accent" onclick="syncToDrive()">📤 Drive에 저장</button><button class="btn-outline" onclick="syncFromDrive()">📥 Drive에서 불러오기</button><button class="btn-outline" onclick="handleDriveClick()">🔗 연결/해제</button></div></div>
+      <div class="card"><div class="card-title">로컬 데이터</div><div class="io-row"><button class="btn-outline accent" onclick="exportJSON()">📤 내보내기</button><button class="btn-outline" onclick="document.getElementById('impF').click()">📥 불러오기</button><input type="file" id="impF" accept=".json" style="display:none" onchange="importJSON(event)"></div></div>
+    </div>
+    <div>
+      <div class="card"><div class="card-title">커스텀 식품</div><div id="cfList" style="max-height:130px;overflow-y:auto;margin-bottom:8px;"></div><div style="display:flex;flex-wrap:wrap;gap:4px"><input class="inp" id="ncfN" placeholder="식품명" style="flex:2;min-width:80px;text-align:left;padding:7px 8px"><input class="inp" id="ncfC" placeholder="kcal" type="number" style="flex:1;min-width:50px"><input class="inp" id="ncfCa" placeholder="탄" type="number" style="flex:1;min-width:40px"><input class="inp" id="ncfFa" placeholder="지" type="number" style="flex:1;min-width:40px"><input class="inp" id="ncfP" placeholder="단" type="number" style="flex:1;min-width:40px"><input class="inp" id="ncfS" placeholder="기준" style="flex:1;min-width:50px;text-align:left;padding:7px 8px"><button class="btn-primary" style="width:auto;padding:7px 12px" onclick="addCF()">+</button></div></div>
+      <div class="card"><div class="card-title">커스텀 운동</div><div id="ceList" style="max-height:100px;overflow-y:auto;margin-bottom:8px;"></div><div style="display:flex;gap:4px;flex-wrap:wrap"><input class="inp" id="ceN" placeholder="운동명" style="flex:2;min-width:80px;text-align:left;padding:7px 8px"><select id="ceType" style="flex:1;padding:7px 8px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--t1);font-size:11px;outline:none;font-family:'Outfit',sans-serif"><option value="cardio">유산소</option><option value="strength">무산소</option></select><input class="inp" id="ceCpm" placeholder="cal/분" type="number" style="flex:1;min-width:55px"><button class="btn-primary" style="width:auto;padding:7px 12px" onclick="addCustomEx()">+</button></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn on" onclick="go('pDiary',this)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>일기</button>
+  <button class="tab-btn" onclick="go('pCharts',this)"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>통계</button>
+  <button class="tab-btn" onclick="go('pAI',this)"><svg viewBox="0 0 24 24"><path d="M12 2a6 6 0 016 6c0 3.5-2 6-6 6S6 11.5 6 8a6 6 0 016-6z"/><path d="M6 22v-2a6 6 0 0112 0v2"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/><path d="M9.5 11s.8 1 2.5 1 2.5-1 2.5-1"/></svg>AI</button>
+  <button class="tab-btn" onclick="go('pSet',this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>설정</button>
+</div>
+</div>
+
+<!-- 음식 추가 모달 -->
+<div class="overlay" id="fModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      음식 추가
+      <button class="modal-close" onclick="closeM()">✕</button>
+    </div>
+    <input class="search-inp" id="fSrch" placeholder="음식 검색..." oninput="filterF()">
+    <div class="food-toolbar">
+      <span class="food-sel-count" id="selCount"></span>
+      <button class="btn-outline" style="padding:4px 10px;font-size:10px;flex:none" onclick="clearSel()">선택 해제</button>
+    </div>
+    <div class="food-list" id="fList"></div>
+    <div class="food-add-bar">
+      <button class="btn-primary" style="flex:1" onclick="confirmMulti()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>선택 항목 추가</button>
+    </div>
+    <button class="manual-toggle" onclick="toggleManual()">+ 직접 입력</button>
+    <div class="manual-form" id="manualForm">
+      <input class="inp" id="cfNM" placeholder="음식 이름" style="flex:2;min-width:100px;text-align:left;padding:7px 8px">
+      <input class="inp" id="cfCM" placeholder="kcal" type="number" style="flex:1;min-width:50px">
+      <input class="inp" id="cfCaM" placeholder="탄" type="number" style="flex:1;min-width:40px">
+      <input class="inp" id="cfFM2" placeholder="지" type="number" style="flex:1;min-width:40px">
+      <input class="inp" id="cfPM" placeholder="단" type="number" style="flex:1;min-width:40px">
+      <button class="btn-primary" style="width:auto;padding:7px 12px" onclick="addCFM()">+</button>
+    </div>
+    <!-- 템플릿 -->
+    <div class="template-section">
+      <div class="template-section-title">식단 템플릿</div>
+      <div class="template-list" id="templateList"></div>
+      <div class="template-save-row">
+        <input class="template-name-inp" id="tplName" placeholder="현재 선택을 템플릿으로 저장...">
+        <button class="btn-outline" style="padding:6px 10px;font-size:10px;flex:none;white-space:nowrap" onclick="saveTemplate()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/presets.js"></script>
+<script src="js/data.js"></script>
+<script src="js/exercise.js"></script>
+<script src="js/render.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
