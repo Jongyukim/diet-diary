@@ -38,7 +38,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);min-he
 .bg-glow{position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(110,231,183,.04) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 80% 70%,rgba(125,211,252,.03) 0%,transparent 60%);z-index:0;pointer-events:none;transition:background .3s;}
 .app{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 14px 80px;}
 /* 헤더 */
-.header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;position:sticky;top:0;z-index:50;background:var(--hdr-bg);border-bottom:1px solid var(--border);margin:0 -14px;padding-left:14px;padding-right:14px;backdrop-filter:blur(16px);}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;padding-top:calc(14px + env(safe-area-inset-top));position:sticky;top:0;z-index:50;background:var(--hdr-bg);border-bottom:1px solid var(--border);margin:0 -14px;padding-left:14px;padding-right:14px;backdrop-filter:blur(16px);}
 .logo{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;letter-spacing:-.4px;}
 .logo-icon{width:28px;height:28px;border-radius:8px;background:var(--accentG);display:flex;align-items:center;justify-content:center;}
 .logo-icon svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
@@ -272,7 +272,7 @@ transition:all var(--tr);height:36px;
 @media(min-width:900px){.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.settings-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:899px){.settings-grid{grid-template-columns:1fr;}.body-grid{grid-template-columns:repeat(2,1fr);}}
 /* 체중 빠른입력 바 */
-.weight-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hdr-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:57px;z-index:49;}
+.weight-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hdr-bg);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);position:sticky;top:calc(57px + env(safe-area-inset-top));z-index:49;}
 .weight-bar-lbl{font-size:10px;color:var(--t3);font-weight:600;white-space:nowrap;}
 .weight-bar-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--accent);min-width:48px;}
 .weight-quick-inp{width:70px;padding:5px 8px;background:var(--input-bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;outline:none;text-align:center;transition:border-color var(--tr);}
