@@ -154,13 +154,13 @@ function getWeeklyContext() {
 }
 
 // ===== GPT API 호출 =====
-async function callGPT(messages, maxTokens = 500) {
+async function callGPT(messages, maxTokens = 500, model = 'gpt-4o-mini') {
   const key = getApiKey();
   if (!key) { showToast('API 키를 먼저 등록하세요'); return null; }
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-    body: JSON.stringify({ model: 'gpt-4o', max_tokens: maxTokens, messages }),
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages }),
   });
   if (!res.ok) {
     const e = await res.json();
@@ -199,7 +199,7 @@ async function runScan() {
         { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${_scanBase64}` } },
         { type: 'text', text: SCAN_USER },
       ]},
-    ], 200);
+    ], 200, 'gpt-4o');
     const data = JSON.parse(raw);
     document.getElementById('scanName').value    = data.name    || '';
     document.getElementById('scanServing').value = data.serving || '100g';
@@ -400,7 +400,7 @@ async function runSettingsScan() {
         { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${_settingsScanBase64}` } },
         { type: 'text', text: SCAN_USER_EXT },
       ]},
-    ], 400);
+    ], 400, 'gpt-4o');
     let data;
     try {
       const clean = raw.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'').trim();
